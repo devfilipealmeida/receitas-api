@@ -24,17 +24,22 @@ Basta ter **Docker** e **Docker Compose** instalados. O projeto sobe Nginx, PHP 
    cp .env.example .env
    ```
 
-2. **Gerar a chave da aplicação** (via Docker, para não precisar de PHP instalado):
+2. **Instalar dependências PHP** (a pasta `vendor/` não vem no clone; rode dentro do container):
+   ```bash
+   docker compose run --rm app composer install
+   ```
+
+3. **Gerar a chave da aplicação** (via Docker, para não precisar de PHP instalado):
    ```bash
    docker compose run --rm app php artisan key:generate
    ```
 
-3. **Subir os containers**:
+4. **Subir os containers**:
    ```bash
    docker compose up -d
    ```
 
-4. **Criar as tabelas e popular categorias** (aguarde alguns segundos após o passo 3):
+5. **Criar as tabelas e popular categorias** (aguarde alguns segundos após o passo 4):
    ```bash
    docker compose exec app php artisan migrate --force
    docker compose exec app php artisan db:seed --force
