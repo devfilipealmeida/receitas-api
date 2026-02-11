@@ -19,22 +19,6 @@ API REST em Laravel para cadastro e gestão de receitas por usuário. Inclui aut
 
 Basta ter **Docker** e **Docker Compose** instalados. O projeto sobe Nginx, PHP e MySQL; a API fica em **http://localhost:8000**.
 
-#### Forma mais fácil: script de setup
-
-Na pasta do projeto, execute **um** dos comandos abaixo (escolha conforme seu sistema):
-
-| Sistema        | Comando |
-|----------------|--------|
-| Linux / macOS  | `./scripts/docker-setup.sh` ou `bash scripts/docker-setup.sh` |
-| Windows (PowerShell) | `.\scripts\docker-setup.ps1` |
-| Windows (CMD)  | `scripts\docker-setup.bat` |
-
-O script faz tudo: copia `.env`, gera a chave, sobe os containers, roda migrations e popula as categorias. Ao terminar, acesse **http://localhost:8000** e a documentação em **http://localhost:8000/api/docs**.
-
-#### Passo a passo manual (mesmo em qualquer sistema)
-
-Se preferir rodar cada etapa à mão:
-
 1. **Criar o `.env`** (na pasta do projeto):
    ```bash
    cp .env.example .env
@@ -173,7 +157,6 @@ Na Swagger UI é possível testar todos os endpoints e usar **Authorize** com o 
 - `database/seeders/` – Seeders (ex.: CategoriaSeeder)
 - `storage/api-docs/openapi.yaml` – Especificação OpenAPI (Swagger)
 - `docker/` – Dockerfile (PHP) e configuração Nginx
-- `scripts/` – Scripts de setup (ex.: `docker-setup.sh`, `docker-setup.ps1`)
 - `tests/Feature/Api/` – Testes de integração da API
 - `tests/Unit/` – Testes unitários (Requests, Models)
 
