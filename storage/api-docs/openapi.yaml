@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: Receitas API
+  description: API de cadastro e gestão de receitas por usuário.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8000
+    description: Servidor local
+
+tags:
+  - name: Autenticação
+    description: Cadastro, login e logoff
+  - name: Categorias
+    description: Listagem de categorias
+  - name: Receitas
+    description: CRUD de receitas (requer autenticação)
+
+paths:
+  /api/categorias:
+    get:
+      tags: [Categorias]
+      summary: Listar categorias
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer, example: 1 }
+                        nome: { type: string, example: Sopas }
+
+  /api/usuarios:
+    post:
+      tags: [Autenticação]
+      summary: Cadastrar usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, login, senha]
+              properties:
+                nome: { type: string, maxLength: 100, example: Maria Silva }
+                login: { type: string, maxLength: 100, example: maria }
+                senha: { type: string, minLength: 6, example: "123456" }
+      responses:
+        '201':
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: integer }
+                  nome: { type: string }
+                  login: { type: string }
+                  criado_em: { type: string, format: date-time }
+        '422':
+          description: Erro de validação
+
+  /api/login:
+    post:
+      tags: [Autenticação]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [login, senha]
+              properties:
+                login: { type: string }
+                senha: { type: string }
+      responses:
+        '200':
+          description: Token e dados do usuário
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string, description: Token Bearer para uso nas rotas protegidas }
+                  usuario:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      nome: { type: string }
+                      login: { type: string }
+        '401':
+          description: Login ou senha inválidos
+        '422':
+          description: Erro de validação
+
+  /api/logoff:
+    post:
+      tags: [Autenticação]
+      summary: Logoff (invalida o token atual)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Logoff realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '401':
+          description: Não autenticado
+
+  /api/receitas:
+    get:
+      tags: [Receitas]
+      summary: Pesquisar receitas do usuário
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: categoria
+          in: query
+          schema: { type: integer, description: ID da categoria }
+        - name: nome
+          in: query
+          schema: { type: string, description: Filtro por nome da receita }
+      responses:
+        '200':
+          description: Lista de receitas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Receita' }
+        '401':
+          description: Não autenticado
+
+    post:
+      tags: [Receitas]
+      summary: Cadastrar receita
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [modo_preparo]
+              properties:
+                id_categorias: { type: integer, nullable: true }
+                nome: { type: string, maxLength: 45, nullable: true }
+                tempo_preparo_minutos: { type: integer, minimum: 0, nullable: true }
+                porcoes: { type: integer, minimum: 0, nullable: true }
+                modo_preparo: { type: string }
+                ingredientes: { type: string, nullable: true }
+      responses:
+        '201':
+          description: Receita criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Receita' }
+        '401':
+          description: Não autenticado
+        '422':
+          description: Erro de validação
+
+  /api/receitas/{id}:
+    get:
+      tags: [Receitas]
+      summary: Impressão / exibir uma receita
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Detalhes da receita
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Receita' }
+        '401':
+          description: Não autenticado
+        '404':
+          description: Receita não encontrada ou não pertence ao usuário
+
+    put:
+      tags: [Receitas]
+      summary: Editar receita
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_categorias: { type: integer, nullable: true }
+                nome: { type: string, maxLength: 45, nullable: true }
+                tempo_preparo_minutos: { type: integer, minimum: 0, nullable: true }
+                porcoes: { type: integer, minimum: 0, nullable: true }
+                modo_preparo: { type: string }
+                ingredientes: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Receita atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Receita' }
+        '401':
+          description: Não autenticado
+        '404':
+          description: Receita não encontrada ou não pertence ao usuário
+        '422':
+          description: Erro de validação
+
+    patch:
+      tags: [Receitas]
+      summary: Editar receita (parcial)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_categorias: { type: integer, nullable: true }
+                nome: { type: string, maxLength: 45, nullable: true }
+                tempo_preparo_minutos: { type: integer, minimum: 0, nullable: true }
+                porcoes: { type: integer, minimum: 0, nullable: true }
+                modo_preparo: { type: string }
+                ingredientes: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Receita atualizada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Receita' }
+        '401':
+          description: Não autenticado
+        '404':
+          description: Receita não encontrada ou não pertence ao usuário
+
+    delete:
+      tags: [Receitas]
+      summary: Excluir receita
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Receita excluída
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+        '401':
+          description: Não autenticado
+        '404':
+          description: Receita não encontrada ou não pertence ao usuário
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token obtido em POST /api/login
+
+  schemas:
+    Receita:
+      type: object
+      properties:
+        id: { type: integer }
+        id_usuarios: { type: integer }
+        id_categorias: { type: integer, nullable: true }
+        categoria:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            nome: { type: string }
+        nome: { type: string, nullable: true }
+        tempo_preparo_minutos: { type: integer, nullable: true }
+        porcoes: { type: integer, nullable: true }
+        modo_preparo: { type: string }
+        ingredientes: { type: string, nullable: true }
+        criado_em: { type: string, format: date-time }
+        alterado_em: { type: string, format: date-time }
+
+security: []
