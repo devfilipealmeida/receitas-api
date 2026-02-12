@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/docs/spec', [SwaggerController::class, 'spec']);
 Route::get('/docs', [SwaggerController::class, '__invoke']);
 
-Route::get('/categorias', [CategoriaController::class, 'index']);
 Route::post('/usuarios', [AuthController::class, 'store']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logoff', [AuthController::class, 'logoff'])->middleware('auth:sanctum');
@@ -21,4 +20,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/receitas/{receita}', [ReceitaController::class, 'update']);
     Route::patch('/receitas/{receita}', [ReceitaController::class, 'update']);
     Route::delete('/receitas/{receita}', [ReceitaController::class, 'destroy']);
+    Route::get('/categorias', [CategoriaController::class, 'index']);
 });
